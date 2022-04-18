@@ -44,6 +44,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS = [
     'common.apps.CommonConfig',
+    'users.apps.UsersConfig',
 ]
 
 THIRD_PARTY_APPS = [
@@ -102,7 +103,10 @@ DATABASES = {
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-    }
+    },
+    'TEST': {
+        'NAME': 'mytestdatabase',
+    },
 }
 
 # Password validation
@@ -200,3 +204,5 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8080',
     'http://127.0.0.1:8000',
 ]
+
+AUTH_USER_MODEL = 'users.Employee'
