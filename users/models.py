@@ -8,6 +8,7 @@ from users.validators import validate_phone
 
 class Employee(AbstractBaseUser, PermissionsMixin):
     """ Пользователь """
+
     class Role(models.IntegerChoices):
         USER = 0, _('Пользователь')
         CASHIER = 1, _('Кассир')
@@ -15,7 +16,6 @@ class Employee(AbstractBaseUser, PermissionsMixin):
         ADMIN = 3, _('Администратор')
 
     username = None
-
 
     phone = models.CharField(max_length=12, unique=True, validators=[validate_phone])
     email = models.EmailField(verbose_name=_('Электронная почта'), blank=True, null=True)
@@ -39,3 +39,5 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+
+
