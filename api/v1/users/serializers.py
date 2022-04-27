@@ -40,6 +40,14 @@ class EmployeeCreateUserSerializer(serializers.ModelSerializer):
             'name': {'required': True},
         }
 
+    def validate(self, data):
+        print(44, data)
+        if not len(data['name']):
+            raise serializers.ValidationError("Имя должно быть заполнено")
+        if len(data['password']) < 5:
+            raise serializers.ValidationError("Длина пароля должна быть больше 5")
+        return data
+
     def create(self, validated_data):
         user = EmployeeService.create_user(validated_data)
         return user

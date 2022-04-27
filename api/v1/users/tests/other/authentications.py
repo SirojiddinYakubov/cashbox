@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.contrib.auth import get_user_model
 from factory import fuzzy
 from faker import Faker
@@ -17,13 +19,14 @@ def _get_authentication_token(self, phone, password):
 
 
 def _authenticate(func, role):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         faker = Faker()
         password = faker.password()
         phone = "998{0}".format(fuzzy.FuzzyInteger(100000000, 999999999).fuzz())
         data = {
             'phone': phone,
-            'name': 'Director',
+            'name': "Test user for authenticate",
             'role': role,
         }
         employeee = Employee(**data)
@@ -48,13 +51,3 @@ def cashier_authenticate(func):
 
 def user_authenticate(func):
     return _authenticate(func, Employee.Role.USER)
-
-
-# def allowed_roles(roles=[]):
-#     def decorator(func):
-#         def wrapper(*args, **kwargs):
-#             return func(*args, **kwargs)
-#
-#         return wrapper
-#
-#     return decorator
