@@ -21,9 +21,10 @@ class EmployeeListSerializer(serializers.ModelSerializer):
         ]
 
 
-class EmployeeCreateUserSerializer(serializers.ModelSerializer):
+class EmployeeCreateUpdateUserSerializer(serializers.ModelSerializer):
     """ serializer для создать пользователь user """
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=5, required=True)
+    name = serializers.CharField(required=True, allow_null=False, allow_blank=False)
 
     class Meta:
         model = Employee
@@ -37,23 +38,23 @@ class EmployeeCreateUserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'organization': {'required': True},
-            'name': {'required': True},
         }
-
-    def validate(self, data):
-        print(44, data)
-        if not len(data['name']):
-            raise serializers.ValidationError("Имя должно быть заполнено")
-        if len(data['password']) < 5:
-            raise serializers.ValidationError("Длина пароля должна быть больше 5")
-        return data
 
     def create(self, validated_data):
         user = EmployeeService.create_user(validated_data)
         return user
 
+    def update(self, instance, validated_data):
+        print(instance, validated_data)
+        return instance
 
-class EmployeeCreateCashierSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        context = super().to_representation(instance)
+        context['role'] = instance.get_role_display()
+        return context
+
+
+class EmployeeCreateUpdateCashierSerializer(serializers.ModelSerializer):
     """ serializer для создать пользователь cashier (кассир) """
     password = serializers.CharField(write_only=True)
 
@@ -70,6 +71,7 @@ class EmployeeCreateCashierSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'organization': {'required': True},
             'name': {'required': True},
+            'password': {'required': False}
         }
 
     def create(self, validated_data):

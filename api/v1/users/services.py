@@ -15,14 +15,13 @@ class EmployeeService(object):
 
     @classmethod
     def _base_create_employee(cls, employee_data, employee_role):
-        if cls._clean_user_data(employee_data):
-            password = employee_data.get('password')
-            employee = Employee(**employee_data, role=employee_role)
-            employee.set_password(password)
-            employee.save()
-            return employee
-        else:
-            return False
+        password = employee_data.get('password')
+        if employee_data.get('role', None):
+            employee_data.pop('role')
+        employee = Employee(**employee_data, role=employee_role)
+        employee.set_password(password)
+        employee.save()
+        return employee
 
     @classmethod
     def create_user(cls, data: dict) -> Union[Employee, bool]:
@@ -37,30 +36,3 @@ class EmployeeService(object):
         return Employee.objects.filter(is_active=True,
                                        role__in=[Employee.Role.USER, Employee.Role.CASHIER]
                                        )
-
-    @classmethod
-    def _clean_user_data(cls, data: dict):
-        required_keys = ['organization', 'name', 'phone', 'password']
-        if not all([True if x in data.keys() else False for x in required_keys]):
-            raise ValueError('Все обязательные поля должны быть заполнены')
-
-        if not data['name']:
-            raise ValueError('Имя должно быть заполнено')
-
-        if len(data['phone']) != 12:
-            raise ValueError('Номер телефона должен состоять из 12 цифр')
-
-        employee = Employee.objects.filter(phone=data['phone'])
-        if employee.exists():
-            raise IntegrityError("Этот номер телефона уже зарегистрирован")
-
-        if len(data['password']) < 5:
-            raise ValueError('Длина пароля должна быть больше 5')
-
-        if not data['organization']:
-            raise ObjectDoesNotExist('Организация не найдена')
-
-        if not isinstance(data['organization'], Organization):
-            raise ObjectDoesNotExist('Организация не найдена')
-
-        return True
