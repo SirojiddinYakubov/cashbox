@@ -83,6 +83,7 @@ virtualenv = "^20.14.1"
 webencodings = "^0.5.1"
 whitenoise = "^6.0.0"
 zipp = "^3.8.0"
+pytest-lazy-fixture = "^0.6.3"
 
 [tool.poetry.dev-dependencies]
 

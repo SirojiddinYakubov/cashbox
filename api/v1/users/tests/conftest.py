@@ -32,14 +32,18 @@ def test_employee_admin(db, employee_factory):
     return employee_factory.create(role=Employee.Role.ADMIN)
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def test_organization(db, organization_factory):
+    return organization_factory.create()
+
+
+@pytest.fixture(scope='function')
+def test_organization2(db, organization_factory):
     return organization_factory.create()
 
 
 @pytest.fixture
 def api_client_user(test_employee_user):
-    print("APIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
     client = APIClient()
     client.force_authenticate(test_employee_user)
     return client

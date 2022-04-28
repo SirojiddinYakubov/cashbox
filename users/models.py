@@ -34,7 +34,7 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     objects = EmployeeManager()
 
     def __str__(self):
-        return str(self.name)
+        return f"{self.get_role_display()}: {self.name}"
 
     class Meta:
         verbose_name = "Пользователь"
