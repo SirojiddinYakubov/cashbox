@@ -40,6 +40,8 @@ class EmployeeUpdateUserView(generics.UpdateAPIView):
 
     def get_object(self):
         obj = Employee.objects.get(pk=self.kwargs.get('pk'))
+        print(obj.organization)
+        print(self.request.user.organization)
         if obj.organization == self.request.user.organization:
             return super().get_object()
         raise PermissionDenied()

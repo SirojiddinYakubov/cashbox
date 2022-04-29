@@ -28,6 +28,16 @@ class EmployeeService(object):
         return cls._base_create_employee(data, Employee.Role.USER)
 
     @classmethod
+    def update_user(cls, instance: Employee, data: dict):
+        if data.get('password', None):
+            password = data.pop('password')
+            instance.set_password(password)
+        for key, value in data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
+
+    @classmethod
     def create_cashier(cls, data: dict) -> Union[Employee, bool]:
         return cls._base_create_employee(data, Employee.Role.CASHIER)
 

@@ -7,79 +7,81 @@ Employee = get_user_model()
 
 
 @pytest.fixture
-def create_user_data(request, test_organization, test_organization2):
+def create_update_user_data(request, employee_factory, organization_factory):
+    organization1, organization2 = organization_factory.create_batch(2)
+    user = employee_factory.create()
     data = {
         'valid-data':
             (
-                True,
+                True, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization, 'role': Employee.Role.USER
+                    "organization": organization1, 'role': Employee.Role.USER
                 },
 
             ),
         'invalid-name':
             (
-                False,
+                False, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John2", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization, 'role': Employee.Role.USER
+                    "organization": organization1, 'role': Employee.Role.USER
                 },
             ),
         'invalid-password':
             (
-                False,
+                False, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John", "password": "admin123", "phone": "998919791999",
-                    "organization": test_organization, 'role': Employee.Role.USER
+                    "organization": organization1, 'role': Employee.Role.USER
                 },
             ),
         'invalid-phone':
             (
-                False,
+                False, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791998",
-                    "organization": test_organization, 'role': Employee.Role.USER
+                    "organization": organization1, 'role': Employee.Role.USER
                 },
             ),
         'invalid-organization':
             (
-                False,
+                False, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization2, 'role': Employee.Role.USER
+                    "organization": organization2, 'role': Employee.Role.USER
                 },
             ),
         'invalid-role':
             (
-                False,
+                False, user,
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization
+                    "organization": organization1
                 },
                 {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization, 'role': Employee.Role.CASHIER
+                    "organization": organization1, 'role': Employee.Role.CASHIER
                 },
             ),
     }
@@ -87,15 +89,36 @@ def create_user_data(request, test_organization, test_organization2):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("create_user_data",
+@pytest.mark.parametrize("create_update_user_data",
                          ['valid-data', 'invalid-name', 'invalid-password', 'invalid-phone', 'invalid-organization',
                           'invalid-role'], indirect=True)
-def test_create_user(create_user_data):
-    validity, data, confirm_data = create_user_data
+def test_create_user(create_update_user_data):
+    validity, _, data, confirm_data = create_update_user_data
     user = services.EmployeeService.create_user(data=data)
+    assert all([user.phone == confirm_data.get('phone'),
+                user.name == confirm_data.get('name'),
+                user.organization == confirm_data.get('organization'),
+                user.role == confirm_data.get('role'),
+                user.check_password(confirm_data.get('password'))]) == validity
+    # if data valid check db
+    if validity:
+        assert Employee.objects.get(phone=confirm_data.get('phone'))
+        assert 2 == Employee.objects.count()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("create_update_user_data",
+                         ['valid-data', 'invalid-name', 'invalid-password', 'invalid-phone', 'invalid-organization',
+                          'invalid-role'], indirect=True)
+def test_update_user(create_update_user_data):
+    validity, instance, data, confirm_data = create_update_user_data
+    user = services.EmployeeService.update_user(instance=instance, data=data)
     assert all([user.name == confirm_data.get('name'),
                 user.phone == confirm_data.get('phone'),
                 user.organization == confirm_data.get('organization'),
                 user.role == confirm_data.get('role'),
                 user.check_password(confirm_data.get('password'))]) == validity
-    assert 1 == Employee.objects.count()
+    # if data valid check db
+    if validity:
+        assert Employee.objects.filter(phone=data['phone'])
+        assert 1 == Employee.objects.count()

@@ -7,51 +7,52 @@ Employee = get_user_model()
 
 
 @pytest.fixture
-def user_create_update_data(request, test_organization):
+def user_create_update_data(request, organization_factory):
+    organization = organization_factory.create()
     data = {
         'complete-data':
             (
                 True, {
                     "name": "John", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization.id
+                    "organization": organization.id
                 }
             ),
         'missing-name':
             (
                 False, {
                     "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization.id
+                    "organization": organization.id
                 }
             ),
         'empty-name':
             (
                 False, {
                     "name": "", "password": "admin12345", "phone": "998919791999",
-                    "organization": test_organization.id
+                    "organization": organization.id
                 }
             ),
         'missing-password':
             (
                 False, {
-                    "name": "John", "phone": "998919791999", "organization": test_organization.id
+                    "name": "John", "phone": "998919791999", "organization": organization.id
                 }
             ),
         'empty-password':
             (
                 False, {
-                    "name": "John", "password": "", "phone": "998919791999", "organization": test_organization.id
+                    "name": "John", "password": "", "phone": "998919791999", "organization": organization.id
                 }
             ),
         'missing-phone':
             (
                 False, {
-                    "name": "John", "password": "admin12345", "organization": test_organization.id
+                    "name": "John", "password": "admin12345", "organization": organization.id
                 }
             ),
         'empty-phone':
             (
                 False, {
-                    "name": "John", "password": "admin12345", "phone": "", "organization": test_organization.id
+                    "name": "John", "password": "admin12345", "phone": "", "organization": organization.id
                 }
             ),
         'missing-organization':
@@ -70,6 +71,7 @@ def user_create_update_data(request, test_organization):
     return data[request.param]
 
 
+@pytest.mark.django_db
 @pytest.mark.parametrize("user_create_update_data",
                          ['complete-data', 'missing-name', 'empty-name', 'missing-password', 'empty-password',
                           'missing-phone', 'empty-phone', 'missing-organization', 'invalid-organization'],
@@ -78,6 +80,9 @@ def test_employee_user_create_update_serializer(user_create_update_data: tuple):
     validity, data = user_create_update_data
     serializer = serializers.EmployeeCreateUpdateUserSerializer(data=data)
     assert serializer.is_valid() == validity
+    if serializer.is_valid():
+        serializer.save()
+        assert sorted(['id', 'name', 'phone', 'email', 'role', 'organization']) == sorted(dict(serializer.data).keys())
 
 
 @pytest.mark.django_db
