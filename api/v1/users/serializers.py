@@ -25,6 +25,7 @@ class EmployeeCreateUpdateUserSerializer(serializers.ModelSerializer):
     """ serializer для создать пользователь user """
     password = serializers.CharField(write_only=True, min_length=5, required=True)
     name = serializers.CharField(required=True, allow_null=False, allow_blank=False)
+    role = serializers.SerializerMethodField(method_name='get_role_display', read_only=True)
 
     class Meta:
         model = Employee
@@ -32,6 +33,7 @@ class EmployeeCreateUpdateUserSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'phone',
+            'role',
             'email',
             'organization',
             'password',
@@ -40,18 +42,16 @@ class EmployeeCreateUpdateUserSerializer(serializers.ModelSerializer):
             'organization': {'required': True},
         }
 
+    def get_role_display(self, obj):
+        return obj.get_role_display()
+
     def create(self, validated_data):
         user = EmployeeService.create_user(validated_data)
         return user
 
     def update(self, instance, validated_data):
-        print(instance, validated_data)
-        return instance
-
-    def to_representation(self, instance):
-        context = super().to_representation(instance)
-        context['role'] = instance.get_role_display()
-        return context
+        user = EmployeeService.update_user(instance, validated_data)
+        return user
 
 
 class EmployeeCreateUpdateCashierSerializer(serializers.ModelSerializer):
